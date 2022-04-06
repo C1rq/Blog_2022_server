@@ -135,12 +135,6 @@ module.exports.showFollowers = async (req,res,next)=>{
           data:profile
         })
  
-
-    
-    // const loginUser = await User.findByPk(email)
-
-
-
     
   } catch (error) {
       next(error)
