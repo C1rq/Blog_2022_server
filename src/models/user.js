@@ -18,7 +18,7 @@ const User = sequelize.define("User",{
     allowNull:false,
   },
 
-  avater:{ //头像
+  avatar:{ //头像
     type:DataTypes.TEXT,
     allowNull:true,
   },

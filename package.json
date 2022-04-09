@@ -17,6 +17,7 @@
     "morgan": "^1.10.0",
     "mysql2": "^2.3.3",
     "sequelize": "^6.12.2",
+    "unique-slug": "^2.0.2",
     "validator": "^13.7.0"
   },
   "devDependencies": {
