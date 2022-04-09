@@ -49,9 +49,6 @@ const initRelation = ()=>{
   })
 
 
-
-
-
   // 文章和标签   多对多
   Article.belongsToMany(Tag,{
     through:'TagList',
