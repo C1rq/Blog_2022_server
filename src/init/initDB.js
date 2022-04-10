@@ -26,7 +26,11 @@ const initRelation = ()=>{
     onDelete:'CASCADE'
   });
 
+  // 评论和文章的关系   一对多  一篇文章对应多条评论
   Comment.belongsTo(User);
+
+  Article.hasMany(Comment,{onDelete:"CASCADE"})
+  Comment.belongsTo(Article)
 
   // 用户  对 文章  喜欢   多对多关系
 
