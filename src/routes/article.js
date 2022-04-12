@@ -6,7 +6,7 @@ const articleController = require("../controller/articles")
 
 
 router.post('/',authMiddleware,articleController.createArticle)
-router.get('/',authMiddleware,articleController.getArticles)
+router.get('/',articleController.getArticles)
 router.get('/follow',authMiddleware,articleController.getFollowArticle)
 router.put('/:slug',authMiddleware,articleController.updateArticle)
 router.delete('/:slug',authMiddleware,articleController.deleteArticle)

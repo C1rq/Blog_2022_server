@@ -25,7 +25,7 @@ function handleArticle(article,author){
 
 // 处理文章信息
 
-function handleArticles(article){
+const handleArticles = async (currentEmail,article)=>{
   const newTags = [];
   for (const t of article.dataValues.tags) {
      newTags.push(t.name)
@@ -33,13 +33,32 @@ function handleArticles(article){
   article.dataValues.tags = newTags
 
   // 处理作者信息
-  console.log(article);
   let {email,username,avatar,bio} = article.dataValues.User
   let author = {
     email,username,avatar,bio
   }
   delete article.dataValues.User;
   article.dataValues.author = author;
+
+  // 处理喜欢的信息
+  const favoriteCount = await article.countUsers();
+  if(!favoriteCount){
+      article.dataValues.isFavorite = false
+      article.dataValues.count = 0
+  }
+  if(!currentEmail){
+    article.dataValues.isFavorite = false
+    article.dataValues.count = 0
+  }else{
+    const allFavorites =  await article.getUsers();
+    let allFavoritEmails = [];
+    allFavorites.forEach(u => {
+      allFavoritEmails.push(u.email)
+    });
+    let isFavorite = allFavoritEmails.includes(currentEmail)
+    article.dataValues.isFavorite=isFavorite
+    article.dataValues.count = favoriteCount
+  }
   return article.dataValues
 
 }
@@ -193,13 +212,15 @@ module.exports.deleteArticle = async (req,res,next)=>{
 
 
 
-//  获取所有文章
+//  获取符合条件的所有文章
 module.exports.getArticles = async (req,res,next)=>{
   try {
     const {tag,author,limit=20,offset=0} = await req.query;
-    let articleAll = [];
+    const email = await req.user ? req.user.email : null;
+    let result;
     if(tag&&!author){
-      articleAll = await Article.findAll({
+      result = await Article.findAndCountAll({
+        distinct:true,
         include:[{
           model:Tag,
           attributes:["name"],
@@ -213,7 +234,8 @@ module.exports.getArticles = async (req,res,next)=>{
         offset:parseInt(offset)
       })
     }else if(!tag&&author){
-      articleAll = await Article.findAll({
+      result = await Article.findAndCountAll({
+        distinct:true,
         include:[{
           model:Tag,
           attributes:["name"],
@@ -229,7 +251,8 @@ module.exports.getArticles = async (req,res,next)=>{
         offset:parseInt(offset)
       })
     }else if (tag&&author){
-      articleAll = await Article.findAll({
+      result = await Article.findAndCountAll({
+        distinct:true,
         include:[{
           model:Tag,
           attributes:["name"],
@@ -248,7 +271,8 @@ module.exports.getArticles = async (req,res,next)=>{
         offset:parseInt(offset)
       })
     }else{
-      articleAll = await Article.findAll({
+      result = await Article.findAndCountAll({
+        distinct:true,
         include:[{
           model:Tag,
           attributes:["name"],
@@ -261,17 +285,22 @@ module.exports.getArticles = async (req,res,next)=>{
         offset:parseInt(offset)
       })
     }
+
+    const {count,rows} = result;
     let articleList = [];
-    for (const a of articleAll) {
-      articleList.push(handleArticles(a))
+    for (const t of rows) {
+      let handleArticle =await handleArticles(email,t)
+      articleList.push(handleArticle)
     }
      res.status(200)
         .json({
           status:1,
           message:"条件查询获取文章成功",
-          data:articleList
+          data:{articleList,articleCount:count}
         })
   } catch (error) {
+
+    console.log(error);
     next(error)
   }
 }
@@ -297,22 +326,23 @@ module.exports.getFollowArticle = async (req,res,next)=>{
     for(const o of followAuthors[0]){
       followAuthorEmails.push(o.UserEmail)
     }
-    let articleAll = await Article.findAll({
+    let {count,rows} = await Article.findAndCountAll({
+      distinct:true,
       where:{
         UserEmail:followAuthorEmails
       },
       include:[Tag,User]
     })
     let articles =[]
-    for(const a of articleAll){
-     articles.push(handleArticles(a))
+    for(const a of rows){
+     articles.push(await handleArticles(fansEmail,a))
     }
 
     res.status(200)
         .json({
           status:1,
           message:"文章获取成功",
-          data:articles
+          data:{articles,articleFans:count}
         })
   } catch (error) {
     next(error)

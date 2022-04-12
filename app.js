@@ -20,7 +20,8 @@ app.use(express.json())    //解析
 app.use(morgan('tiny'))  // http 请求日志
 
 
-
+// 静态服务  
+app.use("/static",express.static("public"))
 
 
 // 初始化路由

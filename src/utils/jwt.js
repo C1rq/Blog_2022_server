@@ -2,7 +2,6 @@ require("dotenv").config({path:'../../.env'})
 
 const jwt = require("jsonwebtoken");
 
-console.log(process.env.JWT_SECRET);
 
 // token 加签
 const  sign = async (username,email)=>{
